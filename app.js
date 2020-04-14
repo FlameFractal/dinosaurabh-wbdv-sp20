@@ -6,11 +6,10 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
-const users = require('./routes/users');
 const config = require('./config/database');
 
 // connect to DB
-mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true, });
+mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, });
 
 
 // On Connection
@@ -26,23 +25,18 @@ mongoose.connection.on('error', (err) => {
 // CORS middleware
 app.use(cors());
 
-
-// Passport Middleware
-app.use(passport.initialize());
-app.use(passport.session());
-
-require('./config/passport')(passport);
-
-
 // Body Parser middleware
 app.use(bodyParser.json());
 
-app.use('/users', users);
+// routes
+app.get('/health', (req, res) => res.send({ success: true }));
+app.use('/users', require('./routes/users'));
 
-
-// Index Route
+// catch all route
 app.get('/', (req, res) => {
     res.send('Invalid Endpoint');
 })
 
-app.listen(3000);
+app.listen(config.port || 3000, () => {
+	console.log(`server listening at port ${config.port || 3000}`)
+});
